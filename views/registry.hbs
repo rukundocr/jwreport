@@ -1,0 +1,353 @@
+<style>
+    /* Table Styling: Near Black / Charcoal */
+    .table-dark-custom {
+        background-color: #161922 !important; 
+        color: #ffffff !important;
+        border-radius: 12px;
+        overflow: hidden;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100% !important;
+    }
+
+    .table-dark-custom thead th {
+        background-color: #1f232d;
+        color: var(--accent-color);
+        border-bottom: 2px solid var(--border-color);
+        padding: 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .table-dark-custom tbody td {
+        background-color: #161922;
+        border-bottom: 1px solid var(--border-color);
+        padding: 12px 15px;
+        color: #ffffff;
+    }
+
+    .table-dark-custom tbody tr:hover td {
+        background-color: #1c202b !important;
+    }
+
+    .text-accent { color: var(--accent-color); }
+</style>
+
+<div class="card-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0 text-white">Members Registry</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-danger btn-sm" onclick="generateTablePDF()">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </button>
+            <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#importCSVModal">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addMemberModal" 
+                    style="background: var(--accent-color); color: #000; border: none; font-weight: 600;">
+                <i class="fas fa-user-plus"></i> Add New Member
+            </button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table id="membersTable" class="table table-dark-custom">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Group</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each members}}
+                <tr class="align-middle">
+                    <td class="fw-bold text-white">{{this.firstName}} {{this.lastName}}</td>
+                    <td class="text-secondary">{{#if this.phone}}{{this.phone}}{{else}}-{{/if}}</td>
+                    <td><span class="badge border border-info text-info">{{this.group}}</span></td>
+                    <td class="text-secondary small">{{formatType this.type}}</td>
+                    <td>
+                        <span style="color: {{#if (eq this.status 'Active')}}#03dac6{{else}}#cf6679{{/if}}">
+                            ● {{this.status}}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm text-warning p-0" title="Download Record"
+                                onclick="generateSinglePDF('{{this.firstName}} {{this.lastName}}', '{{this.group}}', '{{this.type}}', '{{this.phone}}')">
+                                <i class="fas fa-file-pdf"></i>
+                            </button>
+                            <button class="btn btn-sm text-info p-0" 
+                                onclick="editMember('{{this._id}}', '{{this.firstName}}', '{{this.lastName}}', '{{this.phone}}', '{{this.group}}', '{{this.type}}', '{{this.status}}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form action="/members/{{this._id}}?_method=DELETE" method="POST" onsubmit="return confirm('Delete this member?')">
+                                <button class="btn btn-sm text-danger p-0"><i class="fas fa-trash-alt"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addMemberModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="/members" method="POST" class="modal-content">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-accent">New Registry Entry</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body row g-3">
+                {{#if errors}}
+                <div class="col-12">
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {{#each errors}}
+                            <li>{{this}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+                {{/if}}
+                <div class="col-md-6">
+                    <label class="small text-secondary">First Name</label>
+                    <input type="text" name="firstName" class="form-control" value="{{submittedData.firstName}}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="small text-secondary">Last Name</label>
+                    <input type="text" name="lastName" class="form-control" value="{{submittedData.lastName}}" required>
+                </div>
+                <div class="col-12">
+                    <label class="small text-secondary">Phone Number</label>
+                    <input type="text" name="phone" class="form-control" placeholder="e.g. 078XXXXXXX" value="{{submittedData.phone}}">
+                </div>
+                <div class="col-12">
+                    <label class="small text-secondary">Group</label>
+                    <select name="group" class="form-select">
+                        <option value="" disabled {{#unless submittedData.group}}selected{{/unless}}>Select Group...</option>
+                        <option value="CYARUZINGE" {{#if (eq submittedData.group 'CYARUZINGE')}}selected{{/if}}>CYARUZINGE</option>
+                        <option value="GISURA" {{#if (eq submittedData.group 'GISURA')}}selected{{/if}}>GISURA</option>
+                        <option value="RUDASHYA CENTRE" {{#if (eq submittedData.group 'RUDASHYA CENTRE')}}selected{{/if}}>RUDASHYA CENTRE</option>
+                        <option value="RUDASHYA" {{#if (eq submittedData.group 'RUDASHYA')}}selected{{/if}}>RUDASHYA</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="small text-secondary">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="" disabled {{#unless submittedData.type}}selected{{/unless}}>Select Type...</option>
+                        <option value="Regular_publisher" {{#if (eq submittedData.type 'Regular_publisher')}}selected{{/if}}>Regular Publisher</option>
+                        <option value="Auxiliary_pioneer" {{#if (eq submittedData.type 'Auxiliary_pioneer')}}selected{{/if}}>Auxiliary Pioneer</option>
+                        <option value="Regular_Pioneers" {{#if (eq submittedData.type 'Regular_Pioneers')}}selected{{/if}}>Regular Pioneer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="submit" class="btn btn-primary w-100" style="background: var(--accent-color); color: #000; border:none;">Register Member</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="editMemberModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="editForm" method="POST" class="modal-content">
+            <input type="hidden" name="_method" value="PUT">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-accent">Update Member</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body row g-3">
+                {{#if editErrors}}
+                <div class="col-12">
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {{#each editErrors}}
+                            <li>{{this}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+                {{/if}}
+                <div class="col-md-6"><input type="text" name="firstName" id="edit_fName" class="form-control" required></div>
+                <div class="col-md-6"><input type="text" name="lastName" id="edit_lName" class="form-control" required></div>
+                <div class="col-12">
+                    <label class="small text-secondary">Phone Number</label>
+                    <input type="text" name="phone" id="edit_phone" class="form-control">
+                </div>
+                <div class="col-12">
+                    <select name="group" id="edit_group" class="form-select">
+                        <option value="CYARUZINGE">CYARUZINGE</option>
+                        <option value="GISURA">GISURA</option>
+                        <option value="RUDASHYA CENTRE">RUDASHYA CENTRE</option>
+                        <option value="RUDASHYA">RUDASHYA</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <select name="type" id="edit_type" class="form-select">
+                        <option value="Regular_publisher">Regular Publisher</option>
+                        <option value="Auxiliary_pioneer">Auxiliary Pioneer</option>
+                        <option value="Regular_Pioneers">Regular Pioneer</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <select name="status" id="edit_status" class="form-select">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="submit" class="btn btn-primary w-100" style="background: var(--accent-color); color: #000; border:none;">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="importCSVModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/members/upload" method="POST" enctype="multipart/form-data">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-accent"><i class="fas fa-file-csv"></i> Bulk Import</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">Ensure columns: <b>firstname, lastname, phone, group, type, status</b></p>
+                    <input type="file" name="csvFile" class="form-control" accept=".csv" required>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="submit" class="btn btn-outline-light w-100">Upload & Sync Atlas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Check if we need to reopen the Add Member modal due to validation errors
+    {{#if showAddModal}}
+    document.addEventListener('DOMContentLoaded', function() {
+        var addModal = new bootstrap.Modal(document.getElementById('addMemberModal'));
+        addModal.show();
+    });
+    {{/if}}
+
+    // Check if we need to reopen the Edit Member modal due to validation errors
+    {{#if showEditModal}}
+    document.addEventListener('DOMContentLoaded', function() {
+        // Pre-fill form with submitted data
+        document.getElementById('editForm').action = '/members/{{editingId}}?_method=PUT';
+        document.getElementById('edit_fName').value = "{{submittedData.firstName}}";
+        document.getElementById('edit_lName').value = "{{submittedData.lastName}}";
+        document.getElementById('edit_phone').value = "{{submittedData.phone}}";
+        document.getElementById('edit_group').value = "{{submittedData.group}}";
+        document.getElementById('edit_type').value = "{{submittedData.type}}";
+        document.getElementById('edit_status').value = "{{submittedData.status}}";
+
+        var editModal = new bootstrap.Modal(document.getElementById('editMemberModal'));
+        editModal.show();
+    });
+    {{/if}}
+
+    // FILL EDIT MODAL LOGIC
+    function editMember(id, fName, lName, phone, group, type, status) {
+        document.getElementById('editForm').action = '/members/' + id + '?_method=PUT';
+        document.getElementById('edit_fName').value = fName;
+        document.getElementById('edit_lName').value = lName;
+        document.getElementById('edit_phone').value = phone || '';
+        document.getElementById('edit_group').value = group;
+        document.getElementById('edit_type').value = type;
+        document.getElementById('edit_status').value = status;
+
+        var myModal = new bootstrap.Modal(document.getElementById('editMemberModal'));
+        myModal.show();
+    }
+
+    // PDF: GENERATE FULL TABLE
+    function generateTablePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // 1. Get the current rows from the table
+        const table = document.getElementById('membersTable');
+        const rows = table.querySelectorAll('tbody tr');
+        const rowCount = rows.length;
+
+        // 2. Prepare Data for AutoTable (Manual extraction to ensure clean text)
+        const tableData = [];
+        rows.forEach((row, index) => {
+            const cols = row.querySelectorAll('td');
+            tableData.push([
+                index + 1,                    // # Column
+                cols[0].innerText.trim(),     // Name Column (First + Last)
+                cols[1].innerText.trim(),     // Phone Column
+                cols[2].innerText.trim(),     // Group Column
+                cols[3].innerText.trim()      // Type Column
+                // Note: Index 4 (Status) is skipped here
+            ]);
+        });
+
+        // 3. Header Section
+        doc.setFontSize(18);
+        doc.text("Kigali Gasogi Member Registry", 14, 20);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("Report Date: " + new Date().toLocaleDateString(), 14, 28);
+        
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text("Total Members: " + rowCount, 14, 34);
+
+        // 4. Generate Table
+        doc.autoTable({
+            head: [['#', 'Name', 'Phone', 'Group', 'Type']],
+            body: tableData,
+            startY: 40,
+            theme: 'grid',
+            headStyles: { fillColor: [187, 134, 252], textColor: [0, 0, 0] },
+            styles: { fontSize: 9 },
+            columnStyles: {
+                0: { cellWidth: 10, halign: 'center' } // Narrow column for '#'
+            },
+            margin: { top: 40 }
+        });
+        
+        doc.save("Kigali_Gasogi_Registry.pdf");
+    }
+
+    // PDF: GENERATE SINGLE MEMBER RECORD
+    function generateSinglePDF(name, group, type, phone) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setDrawColor(187, 134, 252);
+        doc.rect(10, 10, 190, 30);
+        doc.setFontSize(20);
+        doc.text(name, 15, 25);
+        doc.setFontSize(10);
+        doc.text("Member Record Card - Kigali Gasogi", 15, 32);
+
+        doc.autoTable({
+            startY: 50,
+            body: [
+                ["Field", "Details"],
+                ["Full Name", name],
+                ["Phone", phone || "N/A"],
+                ["Group", group],
+                ["Type", type.replace(/_/g, ' ')]
+            ],
+            theme: 'striped',
+            headStyles: { fillColor: [187, 134, 252], textColor: [0, 0, 0] }
+        });
+        
+        doc.save(name.replace(/ /g, '_') + "_Record.pdf");
+    }
+</script>

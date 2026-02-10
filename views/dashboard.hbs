@@ -1,0 +1,170 @@
+<style>
+    /* Main container matching the dark theme */
+    .card-custom {
+        background: #161922;
+        border: 1px solid #33394d;
+        border-radius: 12px;
+        padding: 25px;
+    }
+
+    /* Table adjustments for maximum visibility */
+    .table-dashboard {
+        background-color: #161922 !important;
+        border: 1px solid #33394d;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-dashboard thead th {
+        background-color: #1f232d;
+        color: var(--accent-color);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 15px;
+        border-bottom: 2px solid #33394d;
+    }
+
+    .table-dashboard tbody td {
+        background-color: #161922;
+        color: #ffffff !important;
+        padding: 15px;
+        border-bottom: 1px solid #33394d;
+    }
+
+    /* Accentuated stats */
+    .stat-highlight {
+        color: var(--accent-color) !important;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    /* Footer styling to match total summary look */
+    .total-row td {
+        background-color: #1f232d !important;
+        color: var(--accent-color) !important;
+        font-weight: 800;
+        border-top: 2px solid var(--accent-color);
+        padding: 18px 15px;
+    }
+
+    /* Select input matching previous forms */
+    .form-select-dark {
+        background-color: #1f232d !important;
+        border: 1px solid #33394d !important;
+        color: #ffffff !important;
+    }
+</style>
+
+<div class="card-custom mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h2 class="text-white m-0">Congregation Summary</h2>
+            <p class="text-secondary small mb-0">Monthly report breakdown by classification</p>
+        </div>
+
+        <form action="/dashboard" method="GET" class="d-flex gap-2">
+            <select name="month" class="form-select form-select-dark" onchange="this.form.submit()">
+                {{#each months}}
+                <option value="{{this}}" {{#if (eq ../selectedMonth this)}}selected{{/if}}>{{this}}</option>
+                {{/each}}
+            </select>
+            <select name="year" class="form-select form-select-dark" onchange="this.form.submit()">
+                {{#each years}}
+                <option value="{{this}}" {{#if (eq ../selectedYear this)}}selected{{/if}}>{{this}}</option>
+                {{/each}}
+            </select>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-dashboard align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Classification</th>
+                    <th class="text-center">Total Reports</th>
+                    <th class="text-center">Total Hours</th>
+                    <th class="text-center">Bible Studies</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="fw-bold">Regular Publishers</td>
+                    <td class="text-center">{{stats.publisher.count}}</td>
+                    <td class="text-center text-secondary small">N/A</td>
+                    <td class="text-center stat-highlight">{{stats.publisher.studies}}</td>
+                </tr>
+                <tr>
+                    <td class="fw-bold">Auxiliary Pioneers</td>
+                    <td class="text-center">{{stats.auxiliary.count}}</td>
+                    <td class="text-center stat-highlight">{{stats.auxiliary.hours}}</td>
+                    <td class="text-center stat-highlight">{{stats.auxiliary.studies}}</td>
+                </tr>
+                <tr>
+                    <td class="fw-bold">Regular Pioneers</td>
+                    <td class="text-center">{{stats.regular.count}}</td>
+                    <td class="text-center stat-highlight">{{stats.regular.hours}}</td>
+                    <td class="text-center stat-highlight">{{stats.regular.studies}}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td>CONGREGATION TOTALS</td>
+                    <td class="text-center">{{stats.totals.count}}</td>
+                    <td class="text-center">{{stats.totals.hours}}</td>
+                    <td class="text-center">{{stats.totals.studies}}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+{{#each groupStats}}
+<div class="card-custom mb-4">
+    <div class="mb-4">
+        <h3 class="text-white m-0">Group: {{@key}}</h3>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-dashboard align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Classification</th>
+                    <th class="text-center">Total Reports</th>
+                    <th class="text-center">Total Hours</th>
+                    <th class="text-center">Bible Studies</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="fw-bold">Regular Publishers</td>
+                    <td class="text-center">{{this.publisher.count}}</td>
+                    <td class="text-center text-secondary small">N/A</td>
+                    <td class="text-center stat-highlight">{{this.publisher.studies}}</td>
+                </tr>
+                <tr>
+                    <td class="fw-bold">Auxiliary Pioneers</td>
+                    <td class="text-center">{{this.auxiliary.count}}</td>
+                    <td class="text-center stat-highlight">{{this.auxiliary.hours}}</td>
+                    <td class="text-center stat-highlight">{{this.auxiliary.studies}}</td>
+                </tr>
+                <tr>
+                    <td class="fw-bold">Regular Pioneers</td>
+                    <td class="text-center">{{this.regular.count}}</td>
+                    <td class="text-center stat-highlight">{{this.regular.hours}}</td>
+                    <td class="text-center stat-highlight">{{this.regular.studies}}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td>GROUP TOTALS</td>
+                    <td class="text-center">{{this.totals.count}}</td>
+                    <td class="text-center">{{this.totals.hours}}</td>
+                    <td class="text-center">{{this.totals.studies}}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{{/each}}

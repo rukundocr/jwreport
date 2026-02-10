@@ -1,0 +1,158 @@
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+    .card-custom { background: #161922; border: 1px solid #33394d; border-radius: 12px; padding: 20px; }
+    .summary-card { background: #1f232d; border: 1px solid #33394d; border-radius: 10px; padding: 20px; text-align: center; }
+    .summary-val { font-size: 1.8rem; font-weight: bold; color: #fff; display: block; }
+    .summary-label { font-size: 0.7rem; color: var(--accent-color); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+    .badge-active { background-color: rgba(25, 135, 84, 0.2); color: #75b798; border: 1px solid #75b798; }
+    .badge-no-activity { background-color: rgba(255, 193, 7, 0.15); color: #ffca2c; border: 1px solid #ffca2c; }
+    .badge-missing { background-color: rgba(220, 53, 69, 0.2); color: #ea868f; border: 1px solid #ea868f; }
+    .table-dark-custom { background-color: #161922 !important; border: 1px solid #33394d; width: 100% !important; border-collapse: separate !important; }
+    .table-dark-custom thead th { background-color: #1f232d; color: var(--accent-color); text-transform: uppercase; font-size: 0.75rem; border-bottom: 2px solid #33394d; padding: 15px; }
+    .table-dark-custom tbody td { background-color: #161922; border-bottom: 1px solid #33394d; color: #ffffff !important; padding: 12px 15px; }
+    
+    /* New style for the individual link */
+    .member-link { color: #ffffff !important; text-decoration: none; transition: color 0.2s; }
+    .member-link:hover { color: var(--accent-color) !important; }
+    .link-icon { font-size: 0.65rem; opacity: 0.5; margin-left: 5px; }
+</style>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="summary-card">
+            <span class="summary-label">Active</span>
+            <span class="summary-val text-success">{{summary.activeCount}}</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="summary-card">
+            <span class="summary-label">No Activity</span>
+            <span class="summary-val text-warning">{{summary.noActivityCount}}</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="summary-card">
+            <span class="summary-label">Missing</span>
+            <span class="summary-val text-danger">{{summary.missingCount}}</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="summary-card">
+            <span class="summary-label">Total Hours</span>
+            <span class="summary-val text-accent">{{summary.totalHours}}</span>
+        </div>
+    </div>
+</div>
+
+<div class="card-custom mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <h2 class="text-white m-0">Records: {{selectedMonth}} {{selectedYear}}</h2>
+        <div class="d-flex gap-2">
+            <select id="statusFilter" class="form-select bg-dark text-white border-secondary">
+                <option value="">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="No Activity">No Activity</option>
+                <option value="Missing">Missing</option>
+            </select>
+            <form action="/reports/view" method="GET" class="d-flex gap-2">
+                <select name="month" class="form-select bg-dark text-white border-secondary" onchange="this.form.submit()">
+                    <option value="January" {{#if (eq selectedMonth 'January')}}selected{{/if}}>January</option>
+                    <option value="February" {{#if (eq selectedMonth 'February')}}selected{{/if}}>February</option>
+                    <option value="March" {{#if (eq selectedMonth 'March')}}selected{{/if}}>March</option>
+                    <option value="April" {{#if (eq selectedMonth 'April')}}selected{{/if}}>April</option>
+                    <option value="May" {{#if (eq selectedMonth 'May')}}selected{{/if}}>May</option>
+                    <option value="June" {{#if (eq selectedMonth 'June')}}selected{{/if}}>June</option>
+                    <option value="July" {{#if (eq selectedMonth 'July')}}selected{{/if}}>July</option>
+                    <option value="August" {{#if (eq selectedMonth 'August')}}selected{{/if}}>August</option>
+                    <option value="September" {{#if (eq selectedMonth 'September')}}selected{{/if}}>September</option>
+                    <option value="October" {{#if (eq selectedMonth 'October')}}selected{{/if}}>October</option>
+                    <option value="November" {{#if (eq selectedMonth 'November')}}selected{{/if}}>November</option>
+                    <option value="December" {{#if (eq selectedMonth 'December')}}selected{{/if}}>December</option>
+                </select>
+                <input type="hidden" name="year" value="{{selectedYear}}">
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table id="reportsTable" class="table table-dark-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Publisher Name</th>
+                    <th>Type</th>
+                    <th>Group</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Hours</th>
+                    <th class="text-center">Studies</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each reports}}
+                <tr>
+                    <td class="fw-bold">
+                        <a href="/reports/individual/{{this.memberId._id}}?year={{../selectedYear}}" class="member-link">
+                            {{this.memberId.firstName}} {{this.memberId.lastName}}
+                            <i class="fas fa-external-link-alt link-icon"></i>
+                        </a>
+                    </td>
+                    <td><span class="text-accent small">{{formatType this.memberId.type}}</span></td>
+                    <td class="text-secondary small">{{this.memberId.group}}</td>
+                    <td class="text-center">
+                        <span class="badge {{#if (eq this.status 'Active')}}badge-active{{else if (eq this.status 'No Activity')}}badge-no-activity{{else}}badge-missing{{/if}} px-2 py-1">
+                            {{this.status}}
+                        </span>
+                    </td>
+                    <td class="text-center fw-bold text-white">{{this.hours}}</td>
+                    <td class="text-center text-white">{{this.bibleStudies}}</td>
+                    <td class="text-secondary small">{{this.remarks}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="text-end pe-3 text-secondary">Table Totals:</td>
+                    <td class="text-center text-accent fw-bold" id="totalHours">0</td>
+                    <td class="text-center text-accent fw-bold" id="totalStudies">0</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    var table = $('#reportsTable').DataTable({
+        "paging": true,
+        "pageLength": 25,
+        "dom": '<"d-flex justify-content-between align-items-center mb-3"lf>rtip',
+        "language": { "search": "", "searchPlaceholder": "Search..." },
+        "footerCallback": function (row, data, start, end, display) {
+            var api = this.api();
+            var intVal = i => {
+                if (typeof i === 'string') {
+                    // Extract text from the anchor tag if the name column is included (though it's index 4/5)
+                    let clean = i.replace(/<[^>]*>?/gm, '');
+                    return clean.replace(/[\$,]/g, '') * 1;
+                }
+                return typeof i === 'number' ? i : 0;
+            };
+
+            var totalH = api.column(4, { filter: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+            var totalS = api.column(5, { filter: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+
+            $(api.column(4).footer()).html(totalH);
+            $(api.column(5).footer()).html(totalS);
+        }
+    });
+
+    $('#statusFilter').on('change', function() {
+        table.column(3).search(this.value).draw();
+    });
+});
+</script>

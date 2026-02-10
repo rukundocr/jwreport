@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JW REPORT - KIGALI GASOGI</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f111a;
+            --sidebar-color: #1a1d2b;
+            --accent-color: #bb86fc;
+            --card-bg: #24283b;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #33394d;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Hamburger Menu Button - Mobile Only */
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--accent-color);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #000;
+            font-size: 1.2rem;
+        }
+
+        .hamburger:hover {
+            background: #a46fe8;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background-color: var(--sidebar-color);
+            position: fixed;
+            border-right: 1px solid var(--border-color);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(187, 134, 252, 0.1);
+            color: var(--accent-color);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .nav-item i { margin-right: 15px; width: 20px; }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 40px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .card-custom {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        /* DataTables Customization for Dark Theme */
+        .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, 
+        .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_paginate {
+            color: var(--text-secondary) !important;
+        }
+        
+        table.dataTable { border-color: var(--border-color) !important; }
+        .table { color: var(--text-primary) !important; }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        input, select {
+            background-color: var(--bg-color) !important;
+            border: 1px solid var(--border-color) !important;
+            color: white !important;
+        }
+
+        /* User Profile Section */
+        .user-profile-section {
+            background: rgba(187, 134, 252, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 0 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            line-height: 1;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            text-transform: capitalize;
+            letter-spacing: 0.3px;
+        }
+
+        .user-role {
+            margin-top: 3px;
+        }
+
+        .badge-role {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-role.admin {
+            background: linear-gradient(135deg, #bb86fc, #a46fe8);
+            color: #000;
+        }
+
+        .badge-role.staff {
+            background: rgba(3, 218, 198, 0.15);
+            color: #03dac6;
+            border: 1px solid #03dac6;
+        }
+
+        .badge-role i {
+            margin-right: 4px;
+            font-size: 0.7rem;
+        }
+
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            /* Show hamburger menu on mobile */
+            .hamburger {
+                display: block;
+            }
+
+            /* Hide sidebar by default on mobile */
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            /* Show sidebar when active */
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            /* Adjust main content for mobile */
+            .main-content {
+                margin-left: 0;
+                padding: 80px 15px 20px;
+            }
+
+            /* Adjust card padding on mobile */
+            .card-custom {
+                padding: 15px;
+            }
+
+            /* Make tables responsive */
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            /* Adjust sidebar logo */
+            .sidebar .p-4 {
+                padding: 1rem !important;
+            }
+
+            .sidebar h4 {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Tablet responsiveness */
+        @media (max-width: 992px) and (min-width: 769px) {
+            .sidebar {
+                width: 220px;
+            }
+
+            .main-content {
+                margin-left: 220px;
+                padding: 30px;
+            }
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hamburger Menu Button for Mobile -->
+    <button class="hamburger" id="hamburgerBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="p-4 text-center border-bottom border-secondary mb-3">
+            <h4 style="color: var(--accent-color); letter-spacing: 2px;">JW REPORT</h4>
+            <small class="text-secondary">KIGALI GASOGI</small>
+        </div>
+        
+        {{#if user}}
+        <div class="user-profile-section">
+            <div class="user-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name">{{user.username}}</div>
+                <div class="user-role">
+                    {{#if (eq user.role 'admin')}}
+                    <span class="badge-role admin"><i class="fas fa-shield-alt"></i> Admin</span>
+                    {{else}}
+                    <span class="badge-role staff"><i class="fas fa-user"></i> Staff</span>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+        {{/if}}
+        <nav>
+            
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-chart-line"></i> Report Summary 
+            </a>
+            <a href="/members" class="nav-item {{#if activeMembers}}active{{/if}}">
+                <i class="fas fa-users"></i> Registry
+            </a>
+            <a href="/reports/submit" class="nav-item">
+                <i class="fas fa-edit"></i> Monthly Report Submission
+            </a>
+
+            <a href="/reports/view" class="nav-item">
+                <i class="fas fa-edit"></i>Montly reports
+            </a>
+            
+            <div style="position: absolute; bottom: 20px; width: 100%;">
+                {{#if user}}
+                <a href="/logout" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+                {{/if}}
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        {{{body}}}
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#membersTable').DataTable({
+                "pageLength": 10,
+                "language": { "search": "Quick Find:" }
+            });
+
+            // Mobile Sidebar Toggle
+            const sidebar = document.getElementById('sidebar');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                });
+
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
