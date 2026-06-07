@@ -10,6 +10,7 @@ const flash = require('connect-flash');
 require('dotenv').config();
 const reportRoutes = require('./routes/reportRoutes');
 const dashboardRoutes = require('./routes/dashboard');
+const attendanceRoutes = require('./routes/attendanceRoutes');
 
 // Passport config
 require('./config/passport')(passport);
@@ -93,6 +94,7 @@ app.use('/members', require('./routes/memberRoutes'));
 app.use('/reports', reportRoutes);
 app.use("/view",reportRoutes);
 app.use('/dashboard', dashboardRoutes);
+app.use('/attendance', attendanceRoutes);
 
 // Home redirect
 app.get('/', (req, res) => res.redirect('/dashboard'));

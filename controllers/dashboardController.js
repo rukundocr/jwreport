@@ -91,9 +91,64 @@ exports.getDashboard = async (req, res) => {
             group.totals.hours += hours;
         });
 
+        // --- Category Reports Logic (Yearly) ---
+        const allMembers = await Member.find().sort({ lastName: 1, firstName: 1 }).lean();
+        const sYear = parseInt(selectedYear);
+        const serviceMonths = [
+            { name: "September", year: sYear - 1 },
+            { name: "October", year: sYear - 1 },
+            { name: "November", year: sYear - 1 },
+            { name: "December", year: sYear - 1 },
+            { name: "January", year: sYear },
+            { name: "February", year: sYear },
+            { name: "March", year: sYear },
+            { name: "April", year: sYear },
+            { name: "May", year: sYear },
+            { name: "June", year: sYear },
+            { name: "July", year: sYear },
+            { name: "August", year: sYear }
+        ];
+
+        const yearlyReports = await Report.find({
+            $or: serviceMonths.map(m => ({ month: m.name, year: m.year.toString() }))
+        }).lean();
+
+        const categoryData = {
+            regularPublishers: [],
+            auxiliaryPioneers: [],
+            regularPioneers: []
+        };
+
+        allMembers.forEach(member => {
+            const memberReports = yearlyReports.filter(r => r.memberId.toString() === member._id.toString());
+            const monthlyData = serviceMonths.map(m => {
+                const found = memberReports.find(r => r.month === m.name && r.year.toString() === m.year.toString());
+                return {
+                    month: m.name.substring(0, 3), // Jan, Feb, etc.
+                    participated: found ? found.participated : false,
+                    hours: found ? (Number(found.hours) || 0) : 0,
+                    studies: found ? (Number(found.bibleStudies) || 0) : 0,
+                    hasRecord: !!found
+                };
+            });
+
+            const dataObj = { member, monthlyData };
+            const normalizedType = (member.type || '').toLowerCase().replace(/_/g, ' ');
+            
+            if (normalizedType.includes('auxiliary')) {
+                categoryData.auxiliaryPioneers.push(dataObj);
+            } else if (normalizedType.includes('regular pioneer')) {
+                categoryData.regularPioneers.push(dataObj);
+            } else {
+                categoryData.regularPublishers.push(dataObj);
+            }
+        });
+
         res.render('dashboard', {
             stats,
             groupStats,
+            categoryData,
+            serviceMonths: serviceMonths.map(m => m.name.substring(0, 3)), // Pass abbreviated month names for headers
             selectedMonth,
             selectedYear,
             months: validMonths,

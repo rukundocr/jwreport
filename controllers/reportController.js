@@ -268,3 +268,44 @@ exports.updateReport = async (req, res) => {
         res.status(500).json({ success: false, message: "Error updating report" });
     }
 };
+
+// @desc    Update multiple monthly reports for a single individual
+exports.updateIndividualBulkReports = async (req, res) => {
+    try {
+        const { memberId } = req.params;
+        const { reports } = req.body;
+
+        if (!reports || !Array.isArray(reports)) {
+            return res.status(400).json({ success: false, message: "Invalid data format" });
+        }
+
+        const updatePromises = reports.map(async (data) => {
+            const updateData = {
+                memberId,
+                month: data.month,
+                year: data.year,
+                participated: data.participated === 'on' || data.participated === true,
+                hours: parseFloat(data.hours) || 0,
+                bibleStudies: parseInt(data.bibleStudies) || 0,
+                remarks: data.remarks || ''
+            };
+
+            // Safety checks
+            if (updateData.hours < 0) updateData.hours = 0;
+            if (updateData.bibleStudies < 0) updateData.bibleStudies = 0;
+
+            return Report.findOneAndUpdate(
+                { memberId, month: data.month, year: data.year },
+                updateData,
+                { upsert: true, new: true }
+            );
+        });
+
+        await Promise.all(updatePromises);
+
+        res.json({ success: true, message: "All reports saved successfully" });
+    } catch (err) {
+        console.error("Bulk Update Report Error:", err);
+        res.status(500).json({ success: false, message: "Error saving reports" });
+    }
+};

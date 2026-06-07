@@ -55,116 +55,310 @@
         border: 1px solid #33394d !important;
         color: #ffffff !important;
     }
+
+    /* Nav Tabs dark theme */
+    .nav-tabs {
+        border-bottom: 1px solid #33394d;
+        margin-bottom: 20px;
+    }
+    .nav-tabs .nav-link {
+        color: #8c959f;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 10px 20px;
+        font-weight: 600;
+    }
+    .nav-tabs .nav-link:hover {
+        color: white;
+        border-color: transparent;
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--accent-color);
+        background-color: transparent;
+        border-color: transparent;
+        border-bottom: 2px solid var(--accent-color);
+    }
+    
+    /* Small table for yearly reports */
+    .table-yearly {
+        font-size: 0.85rem;
+    }
+    .table-yearly th, .table-yearly td {
+        padding: 8px !important;
+        text-align: center;
+    }
+    .table-yearly td.text-start {
+        text-align: left;
+    }
+    .badge-check { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid #00ff88; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
 </style>
 
-<div class="card-custom mb-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-        <div>
-            <h2 class="text-white m-0">Congregation Summary</h2>
-            <p class="text-secondary small mb-0">Monthly report breakdown by classification</p>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="text-white m-0">Report Summary Dashboard</h2>
+        <p class="text-secondary small mb-0">Monthly report breakdown & Yearly Category Reports</p>
+    </div>
+
+    <form action="/dashboard" method="GET" class="d-flex gap-2">
+        <select name="month" class="form-select form-select-dark" onchange="this.form.submit()">
+            {{#each months}}
+            <option value="{{this}}" {{#if (eq ../selectedMonth this)}}selected{{/if}}>{{this}}</option>
+            {{/each}}
+        </select>
+        <select name="year" class="form-select form-select-dark" onchange="this.form.submit()">
+            {{#each years}}
+            <option value="{{this}}" {{#if (eq ../selectedYear this)}}selected{{/if}}>{{this}}</option>
+            {{/each}}
+        </select>
+    </form>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs flex-wrap" id="dashboardTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="congregation-tab" data-bs-toggle="tab" data-bs-target="#congregation" type="button" role="tab">Congregation Total</button>
+    </li>
+    {{#each groupStats}}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="group-{{@key}}-tab" data-bs-toggle="tab" data-bs-target="#group-{{@key}}" type="button" role="tab">Group {{@key}}</button>
+    </li>
+    {{/each}}
+    <li class="nav-item ms-auto" role="presentation">
+        <button class="nav-link" id="category-tab" data-bs-toggle="tab" data-bs-target="#category" type="button" role="tab"><i class="fas fa-list me-2"></i>Yearly Category Reports</button>
+    </li>
+</ul>
+
+<!-- Tabs Content -->
+<div class="tab-content" id="dashboardTabsContent">
+    
+    <!-- CONGREGATION TAB -->
+    <div class="tab-pane fade show active" id="congregation" role="tabpanel">
+        <div class="card-custom mb-4">
+            <h3 class="text-white mb-4">Congregation Summary - {{selectedMonth}} {{selectedYear}}</h3>
+            <div class="table-responsive">
+                <table class="table table-dashboard align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Classification</th>
+                            <th class="text-center">Total Reports</th>
+                            <th class="text-center">Total Hours</th>
+                            <th class="text-center">Bible Studies</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">Regular Publishers</td>
+                            <td class="text-center">{{stats.publisher.count}}</td>
+                            <td class="text-center text-secondary small">N/A</td>
+                            <td class="text-center stat-highlight">{{stats.publisher.studies}}</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Auxiliary Pioneers</td>
+                            <td class="text-center">{{stats.auxiliary.count}}</td>
+                            <td class="text-center stat-highlight">{{stats.auxiliary.hours}}</td>
+                            <td class="text-center stat-highlight">{{stats.auxiliary.studies}}</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Regular Pioneers</td>
+                            <td class="text-center">{{stats.regular.count}}</td>
+                            <td class="text-center stat-highlight">{{stats.regular.hours}}</td>
+                            <td class="text-center stat-highlight">{{stats.regular.studies}}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td>CONGREGATION TOTALS</td>
+                            <td class="text-center">{{stats.totals.count}}</td>
+                            <td class="text-center">{{stats.totals.hours}}</td>
+                            <td class="text-center">{{stats.totals.studies}}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
-
-        <form action="/dashboard" method="GET" class="d-flex gap-2">
-            <select name="month" class="form-select form-select-dark" onchange="this.form.submit()">
-                {{#each months}}
-                <option value="{{this}}" {{#if (eq ../selectedMonth this)}}selected{{/if}}>{{this}}</option>
-                {{/each}}
-            </select>
-            <select name="year" class="form-select form-select-dark" onchange="this.form.submit()">
-                {{#each years}}
-                <option value="{{this}}" {{#if (eq ../selectedYear this)}}selected{{/if}}>{{this}}</option>
-                {{/each}}
-            </select>
-        </form>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-dashboard align-middle">
-            <thead>
-                <tr>
-                    <th style="width: 40%;">Classification</th>
-                    <th class="text-center">Total Reports</th>
-                    <th class="text-center">Total Hours</th>
-                    <th class="text-center">Bible Studies</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="fw-bold">Regular Publishers</td>
-                    <td class="text-center">{{stats.publisher.count}}</td>
-                    <td class="text-center text-secondary small">N/A</td>
-                    <td class="text-center stat-highlight">{{stats.publisher.studies}}</td>
-                </tr>
-                <tr>
-                    <td class="fw-bold">Auxiliary Pioneers</td>
-                    <td class="text-center">{{stats.auxiliary.count}}</td>
-                    <td class="text-center stat-highlight">{{stats.auxiliary.hours}}</td>
-                    <td class="text-center stat-highlight">{{stats.auxiliary.studies}}</td>
-                </tr>
-                <tr>
-                    <td class="fw-bold">Regular Pioneers</td>
-                    <td class="text-center">{{stats.regular.count}}</td>
-                    <td class="text-center stat-highlight">{{stats.regular.hours}}</td>
-                    <td class="text-center stat-highlight">{{stats.regular.studies}}</td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr class="total-row">
-                    <td>CONGREGATION TOTALS</td>
-                    <td class="text-center">{{stats.totals.count}}</td>
-                    <td class="text-center">{{stats.totals.hours}}</td>
-                    <td class="text-center">{{stats.totals.studies}}</td>
-                </tr>
-            </tfoot>
-        </table>
+    <!-- GROUP TABS -->
+    {{#each groupStats}}
+    <div class="tab-pane fade" id="group-{{@key}}" role="tabpanel">
+        <div class="card-custom mb-4">
+            <h3 class="text-white mb-4">Group: {{@key}} - {{../selectedMonth}} {{../selectedYear}}</h3>
+            <div class="table-responsive">
+                <table class="table table-dashboard align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Classification</th>
+                            <th class="text-center">Total Reports</th>
+                            <th class="text-center">Total Hours</th>
+                            <th class="text-center">Bible Studies</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">Regular Publishers</td>
+                            <td class="text-center">{{this.publisher.count}}</td>
+                            <td class="text-center text-secondary small">N/A</td>
+                            <td class="text-center stat-highlight">{{this.publisher.studies}}</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Auxiliary Pioneers</td>
+                            <td class="text-center">{{this.auxiliary.count}}</td>
+                            <td class="text-center stat-highlight">{{this.auxiliary.hours}}</td>
+                            <td class="text-center stat-highlight">{{this.auxiliary.studies}}</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Regular Pioneers</td>
+                            <td class="text-center">{{this.regular.count}}</td>
+                            <td class="text-center stat-highlight">{{this.regular.hours}}</td>
+                            <td class="text-center stat-highlight">{{this.regular.studies}}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td>GROUP TOTALS</td>
+                            <td class="text-center">{{this.totals.count}}</td>
+                            <td class="text-center">{{this.totals.hours}}</td>
+                            <td class="text-center">{{this.totals.studies}}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+
+    <!-- CATEGORY REPORTS TAB -->
+    <div class="tab-pane fade" id="category" role="tabpanel">
+        <div class="card-custom mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-white m-0">Yearly Category Reports ({{selectedYear}})</h3>
+                
+                <select id="categorySelector" class="form-select form-select-dark" style="width: 250px;">
+                    <option value="regularPublishers">Regular Publishers</option>
+                    <option value="auxiliaryPioneers">Auxiliary Pioneers</option>
+                    <option value="regularPioneers">Regular Pioneers</option>
+                </select>
+            </div>
+
+            <!-- Regular Publishers Grid -->
+            <div id="grid-regularPublishers" class="category-grid">
+                <div class="table-responsive">
+                    <table class="table table-dashboard table-yearly align-middle">
+                        <thead>
+                            <tr>
+                                <th class="text-start" style="min-width: 150px;">Member Name</th>
+                                {{#each serviceMonths}}
+                                <th>{{this}}</th>
+                                {{/each}}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each categoryData.regularPublishers}}
+                            <tr>
+                                <td class="text-start fw-bold">{{this.member.firstName}} {{this.member.lastName}}</td>
+                                {{#each this.monthlyData}}
+                                <td>
+                                    {{#if this.hasRecord}}
+                                        {{#if this.participated}}
+                                            <span class="badge-check">YES</span>
+                                        {{else}}
+                                            <span class="text-danger small fw-bold">NO</span>
+                                        {{/if}}
+                                        {{#if this.studies}}<br><small class="text-secondary">{{this.studies}}s</small>{{/if}}
+                                    {{else}}
+                                        <span class="text-muted">-</span>
+                                    {{/if}}
+                                </td>
+                                {{/each}}
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Auxiliary Pioneers Grid -->
+            <div id="grid-auxiliaryPioneers" class="category-grid" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table table-dashboard table-yearly align-middle">
+                        <thead>
+                            <tr>
+                                <th class="text-start" style="min-width: 150px;">Member Name</th>
+                                {{#each serviceMonths}}
+                                <th>{{this}}</th>
+                                {{/each}}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each categoryData.auxiliaryPioneers}}
+                            <tr>
+                                <td class="text-start fw-bold">{{this.member.firstName}} {{this.member.lastName}}</td>
+                                {{#each this.monthlyData}}
+                                <td>
+                                    {{#if this.hasRecord}}
+                                        <span class="text-white fw-bold">{{this.hours}}h</span>
+                                        {{#if this.studies}}<br><small class="text-secondary">{{this.studies}}s</small>{{/if}}
+                                    {{else}}
+                                        <span class="text-muted">-</span>
+                                    {{/if}}
+                                </td>
+                                {{/each}}
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Regular Pioneers Grid -->
+            <div id="grid-regularPioneers" class="category-grid" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table table-dashboard table-yearly align-middle">
+                        <thead>
+                            <tr>
+                                <th class="text-start" style="min-width: 150px;">Member Name</th>
+                                {{#each serviceMonths}}
+                                <th>{{this}}</th>
+                                {{/each}}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each categoryData.regularPioneers}}
+                            <tr>
+                                <td class="text-start fw-bold">{{this.member.firstName}} {{this.member.lastName}}</td>
+                                {{#each this.monthlyData}}
+                                <td>
+                                    {{#if this.hasRecord}}
+                                        <span class="text-white fw-bold">{{this.hours}}h</span>
+                                        {{#if this.studies}}<br><small class="text-secondary">{{this.studies}}s</small>{{/if}}
+                                    {{else}}
+                                        <span class="text-muted">-</span>
+                                    {{/if}}
+                                </td>
+                                {{/each}}
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 
-{{#each groupStats}}
-<div class="card-custom mb-4">
-    <div class="mb-4">
-        <h3 class="text-white m-0">Group: {{@key}}</h3>
-    </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelector = document.getElementById('categorySelector');
+        const grids = document.querySelectorAll('.category-grid');
 
-    <div class="table-responsive">
-        <table class="table table-dashboard align-middle">
-            <thead>
-                <tr>
-                    <th style="width: 40%;">Classification</th>
-                    <th class="text-center">Total Reports</th>
-                    <th class="text-center">Total Hours</th>
-                    <th class="text-center">Bible Studies</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="fw-bold">Regular Publishers</td>
-                    <td class="text-center">{{this.publisher.count}}</td>
-                    <td class="text-center text-secondary small">N/A</td>
-                    <td class="text-center stat-highlight">{{this.publisher.studies}}</td>
-                </tr>
-                <tr>
-                    <td class="fw-bold">Auxiliary Pioneers</td>
-                    <td class="text-center">{{this.auxiliary.count}}</td>
-                    <td class="text-center stat-highlight">{{this.auxiliary.hours}}</td>
-                    <td class="text-center stat-highlight">{{this.auxiliary.studies}}</td>
-                </tr>
-                <tr>
-                    <td class="fw-bold">Regular Pioneers</td>
-                    <td class="text-center">{{this.regular.count}}</td>
-                    <td class="text-center stat-highlight">{{this.regular.hours}}</td>
-                    <td class="text-center stat-highlight">{{this.regular.studies}}</td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr class="total-row">
-                    <td>GROUP TOTALS</td>
-                    <td class="text-center">{{this.totals.count}}</td>
-                    <td class="text-center">{{this.totals.hours}}</td>
-                    <td class="text-center">{{this.totals.studies}}</td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-</div>
-{{/each}}
+        if (categorySelector) {
+            categorySelector.addEventListener('change', function() {
+                const selectedGrid = 'grid-' + this.value;
+                grids.forEach(grid => {
+                    grid.style.display = grid.id === selectedGrid ? 'block' : 'none';
+                });
+            });
+        }
+    });
+</script>

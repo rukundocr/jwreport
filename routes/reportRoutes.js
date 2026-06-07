@@ -16,6 +16,9 @@ router.get('/individual/:memberId', ensureAuth, reportController.getIndividualRe
 // Add this ABOVE the :memberId route to avoid conflicts
 router.get('/individual/main', ensureAuth, reportController.getInitialIndividualReport);
 
+// Route to update multiple monthly reports at once
+router.post('/individual/:memberId/bulk-update', ensureAuth, reportController.updateIndividualBulkReports);
+
 // Route to update a report manually
 router.post('/update', ensureAuth, reportController.updateReport);
 

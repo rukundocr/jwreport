@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' }); // Temporary folder
-const { ensureAdmin } = require('../middleware/auth');
+const { ensureAdmin, ensureAuth } = require('../middleware/auth');
 const memberController = require('../controllers/memberController');
+
+router.get('/search', ensureAuth, memberController.searchMembers);
 
 router.get('/', ensureAdmin, memberController.getMembers);
 router.post('/', ensureAdmin, memberController.createMember);

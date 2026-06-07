@@ -25,6 +25,7 @@
     <div class="row mb-4 align-items-end g-3 no-print">
         <div class="col-md-5">
             <label class="text-secondary small d-block mb-1">Select Member:</label>
+            <input type="text" id="memberSearch" class="form-control form-control-sm mb-2" placeholder="Search by name..." style="background-color: #1f232d; color: white; border: 1px solid #33394d;">
             <select id="memberSelector" class="form-select form-select-dark">
                 {{#each allMembers}}
                     <option value="{{this._id}}" {{#if (eq this._id ../member._id)}}selected{{/if}}>
@@ -62,7 +63,9 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table table-record align-middle">
+            <form id="bulkUpdateForm">
+                <input type="hidden" id="memberId" value="{{member._id}}">
+                <table class="table table-record align-middle">
                 <thead>
                     <tr>
                         <th style="width: 20%;">Month</th>
@@ -78,36 +81,29 @@
                 <tbody>
                     {{#each yearlyData}}
                     <tr>
-                        <td class="fw-bold text-white">{{this.month}}</td>
+                        <td class="fw-bold text-white">
+                            {{this.month}}
+                            <input type="hidden" name="reports[{{@index}}][month]" value="{{this.month}}">
+                            <input type="hidden" name="reports[{{@index}}][year]" value="{{this.year}}">
+                        </td>
                         <td class="text-center">
-                            {{#if this.participated}}
-                                <span class="badge-check">YES</span>
-                            {{else if this.hasRecord}}
-                                <span class="text-danger small fw-bold">NO</span>
-                            {{else}}
-                                <span class="text-muted small">---</span>
-                            {{/if}}
+                            <div class="form-check d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" name="reports[{{@index}}][participated]" {{#if this.participated}}checked{{/if}}>
+                            </div>
                         </td>
                         {{#if ../isPioneer}}
-                        <td class="text-center fw-bold text-white">{{this.hours}}</td>
+                        <td class="text-center">
+                            <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary text-center" name="reports[{{@index}}][hours]" value="{{this.hours}}" min="0" style="width: 80px; margin: 0 auto;">
+                        </td>
                         {{/if}}
-                        <td class="text-center text-white">{{this.bibleStudies}}</td>
-                        <td class="text-secondary small">{{this.remarks}}</td>
+                        <td class="text-center">
+                            <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary text-center" name="reports[{{@index}}][bibleStudies]" value="{{this.bibleStudies}}" min="0" style="width: 80px; margin: 0 auto;">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" name="reports[{{@index}}][remarks]" value="{{this.remarks}}">
+                        </td>
                         <td class="text-center no-print">
-                            {{#if this.hasRecord}}
-                                <button class="btn btn-sm btn-outline-accent edit-btn" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#editReportModal"
-                                        data-id="{{this._id}}" 
-                                        data-month="{{this.month}}"
-                                        data-year="{{this.year}}"
-                                        data-participated="{{this.participated}}"
-                                        data-hours="{{this.hours}}"
-                                        data-studies="{{this.bibleStudies}}"
-                                        data-remarks="{{this.remarks}}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            {{/if}}
+                            <!-- Live edit, no action button per row needed -->
                         </td>
                     </tr>
                     {{/each}}
@@ -125,50 +121,11 @@
                     </tr>
                 </tfoot>
             </table>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Report Modal -->
-<div class="modal fade" id="editReportModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title text-white">Edit Monthly Report</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="text-end mt-3 no-print">
+                <button type="button" id="saveBulkBtn" class="btn btn-primary bg-accent text-dark border-0 fw-bold px-4 py-2">
+                    <i class="fas fa-save me-2"></i> Save All Changes
+                </button>
             </div>
-            <form id="editReportForm">
-                <div class="modal-body">
-                    <input type="hidden" id="editReportId" name="reportId">
-                    
-                    <div class="mb-3 text-center">
-                        <h4 class="text-accent" id="editMonthYear">Month Year</h4>
-                    </div>
-
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="editParticipated" name="participated">
-                        <label class="form-check-label text-white" for="editParticipated">Participated in ministry?</label>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="text-secondary small mb-1">Hours</label>
-                        <input type="number" class="form-control bg-dark text-white border-secondary" id="editHours" name="hours" min="0">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="text-secondary small mb-1">Bible Studies</label>
-                        <input type="number" class="form-control bg-dark text-white border-secondary" id="editStudies" name="bibleStudies" min="0">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="text-secondary small mb-1">Remarks</label>
-                        <textarea class="form-control bg-dark text-white border-secondary" id="editRemarks" name="remarks" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary bg-accent text-dark border-0 fw-bold">Save Changes</button>
-                </div>
             </form>
         </div>
     </div>
@@ -191,46 +148,81 @@
             yearSelect.addEventListener('change', updateView);
         }
 
-        // Edit Modal Logic
-        const editModalEl = document.getElementById('editReportModal');
-        if (!editModalEl) return;
+        // Member Search Filter Logic (DOM based)
+        const memberSearch = document.getElementById('memberSearch');
+        if (memberSearch && memberSelect) {
+            // Store original selected index to restore if search cleared
+            const originalSelectedIndex = memberSelect.selectedIndex;
+            
+            memberSearch.addEventListener('input', function() {
+                const term = this.value.toLowerCase();
+                const options = memberSelect.options;
+                
+                // If searching, unselect to allow clicking the single result
+                if (term.length > 0) {
+                    memberSelect.selectedIndex = -1;
+                } else {
+                    memberSelect.selectedIndex = originalSelectedIndex;
+                }
 
-        const editForm = document.getElementById('editReportForm');
-        
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.getElementById('editReportId').value = this.dataset.id || '';
-                document.getElementById('editMonthYear').textContent = `${this.dataset.month} ${this.dataset.year}`;
-                document.getElementById('editParticipated').checked = this.dataset.participated === 'true';
-                document.getElementById('editHours').value = this.dataset.hours || 0;
-                document.getElementById('editStudies').value = this.dataset.studies || 0;
-                document.getElementById('editRemarks').value = this.dataset.remarks || '';
+                for (let i = 0; i < options.length; i++) {
+                    const text = options[i].textContent.toLowerCase();
+                    options[i].style.display = text.includes(term) ? '' : 'none';
+                }
             });
-        });
+        }
 
-        if (editForm) {
-            editForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                const data = Object.fromEntries(formData.entries());
-                data.participated = document.getElementById('editParticipated').checked ? 'on' : 'off';
+        // Bulk Edit Logic
+        const saveBulkBtn = document.getElementById('saveBulkBtn');
+        const bulkUpdateForm = document.getElementById('bulkUpdateForm');
+        const memberId = document.getElementById('memberId').value;
+
+        if (saveBulkBtn && bulkUpdateForm) {
+            saveBulkBtn.addEventListener('click', async function() {
+                saveBulkBtn.disabled = true;
+                saveBulkBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...';
 
                 try {
-                    const response = await fetch('/reports/update', {
+                    const formData = new FormData(bulkUpdateForm);
+                    const rawData = Object.fromEntries(formData.entries());
+                    
+                    // Parse form data into an array of report objects
+                    const reportsArray = [];
+                    // We know there are exactly 12 months in the form loop
+                    for (let i = 0; i < 12; i++) {
+                        // Check if the month exists in the form to safely parse
+                        if (rawData[`reports[${i}][month]`]) {
+                            reportsArray.push({
+                                month: rawData[`reports[${i}][month]`],
+                                year: rawData[`reports[${i}][year]`],
+                                participated: rawData[`reports[${i}][participated]`] === 'on',
+                                hours: rawData[`reports[${i}][hours]`],
+                                bibleStudies: rawData[`reports[${i}][bibleStudies]`],
+                                remarks: rawData[`reports[${i}][remarks]`]
+                            });
+                        }
+                    }
+
+                    const response = await fetch(`/reports/individual/${memberId}/bulk-update`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({ reports: reportsArray })
                     });
 
                     const result = await response.json();
                     if (result.success) {
+                        // Reload to recalculate totals and show fresh data
                         location.reload();
                     } else {
-                        alert(result.message || "Error updating report");
+                        alert(result.message || "Error saving reports");
+                        saveBulkBtn.disabled = false;
+                        saveBulkBtn.innerHTML = '<i class="fas fa-save me-2"></i> Save All Changes';
                     }
                 } catch (err) {
                     console.error(err);
                     alert("An error occurred. Please try again.");
+                    saveBulkBtn.disabled = false;
+                    saveBulkBtn.innerHTML = '<i class="fas fa-save me-2"></i> Save All Changes';
                 }
             });
         }

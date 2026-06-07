@@ -138,3 +138,25 @@ exports.deleteMember = async (req, res) => {
         res.redirect('/members?error=delete_failed');
     }
 };
+
+// @desc    Search Members (AJAX)
+exports.searchMembers = async (req, res) => {
+    try {
+        const query = req.query.q;
+        if (!query) {
+            return res.json([]);
+        }
+        
+        const members = await Member.find({
+            $or: [
+                { firstName: { $regex: query, $options: 'i' } },
+                { lastName: { $regex: query, $options: 'i' } }
+            ]
+        }).sort({ firstName: 1 }).lean().limit(20);
+        
+        res.json(members);
+    } catch (err) {
+        console.error("Search error:", err);
+        res.status(500).json({ error: "Server Error" });
+    }
+};

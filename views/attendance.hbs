@@ -1,0 +1,320 @@
+<style>
+    .card-custom { background: #161922; border: 1px solid #33394d; border-radius: 12px; padding: 25px; }
+    .nav-tabs { border-bottom: 2px solid #33394d; margin-bottom: 30px; gap: 10px; }
+    .nav-tabs .nav-link { 
+        color: var(--text-secondary); 
+        border: none; 
+        font-weight: 600; 
+        padding: 12px 25px; 
+        border-radius: 8px 8px 0 0;
+        transition: all 0.3s;
+    }
+    .nav-tabs .nav-link:hover { color: var(--accent-color); background: rgba(187, 134, 252, 0.05); }
+    .nav-tabs .nav-link.active { 
+        color: #000; 
+        background: var(--accent-color); 
+        border: none; 
+    }
+
+    /* Summary Cards */
+    .summary-card { background: #1f232d; border: 1px solid #33394d; border-radius: 12px; padding: 20px; text-align: center; transition: transform 0.3s ease; }
+    .summary-card:hover { transform: translateY(-3px); border-color: var(--accent-color); }
+    .summary-val { font-size: 2rem; font-weight: 800; color: #fff; display: block; }
+    .summary-label { font-size: 0.75rem; color: var(--accent-color); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+
+    /* Form Styling */
+    .form-control-dark {
+        background-color: #1f232d !important;
+        border: 1px solid #33394d !important;
+        color: #ffffff !important;
+        padding: 12px;
+        border-radius: 8px;
+    }
+    .btn-submit { background: var(--accent-color); color: #000; border: none; font-weight: 800; padding: 15px; border-radius: 8px; }
+
+    /* Table Styling - ENHANCED VISIBILITY */
+    .table-dark-custom { 
+        background-color: #161922 !important; 
+        border: 1px solid #33394d !important; 
+        border-radius: 12px; 
+        overflow: hidden;
+        color: #ffffff !important;
+    }
+    .table-dark-custom thead th { 
+        background-color: #1f232d !important; 
+        color: var(--accent-color) !important; 
+        text-transform: uppercase; 
+        font-size: 0.7rem; 
+        border-bottom: 2px solid #33394d; 
+        padding: 15px; 
+    }
+    .table-dark-custom tbody td { 
+        background-color: #161922 !important;
+        border-bottom: 1px solid #33394d !important; 
+        color: #ffffff !important; 
+        padding: 12px 15px; 
+    }
+    
+    .type-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+    .badge-weekday { background: rgba(187, 134, 252, 0.1); color: var(--accent-color); border: 1px solid var(--accent-color); }
+    .badge-weekend { background: rgba(3, 218, 198, 0.1); color: #03dac6; border: 1px solid #03dac6; }
+
+    /* DataTables Overrides for Dark Mode */
+    .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_paginate {
+        color: #a0a0a0 !important;
+    }
+    .dataTables_filter input {
+        background-color: #1f232d !important;
+        border: 1px solid #33394d !important;
+        color: white !important;
+        border-radius: 5px;
+        padding: 5px 10px;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white m-0"><i class="fas fa-users-viewfinder me-3 text-accent"></i>Congregational Attendance</h2>
+        <span class="badge bg-dark border border-secondary p-2 small">Monthly Overview</span>
+    </div>
+
+    <!-- Nav Tabs -->
+    <ul class="nav nav-tabs" id="attendanceTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {{#if (eq activeTab 'record')}}active{{/if}}" id="record-tab" data-bs-toggle="tab" data-bs-target="#record" type="button" role="tab">
+                <i class="fas fa-plus-circle me-2"></i>Record Attendance
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {{#if (eq activeTab 'report')}}active{{/if}}" id="report-tab" data-bs-toggle="tab" data-bs-target="#report" type="button" role="tab">
+                <i class="fas fa-chart-column me-2"></i>Attendance Report
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="attendanceTabsContent">
+        
+        <!-- Tab 1: Record Attendance -->
+        <div class="tab-pane fade {{#if (eq activeTab 'record')}}show active{{/if}}" id="record" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-md-7">
+                    <div class="card-custom">
+                        <h4 class="text-white mb-4">New Attendance Entry</h4>
+                        <form action="/attendance/submit" method="POST">
+                            <div class="mb-3">
+                                <label class="text-secondary small mb-2">Meeting Date</label>
+                                <input type="date" name="date" class="form-control form-control-dark" value="{{today}}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-secondary small mb-2">Meeting Type</label>
+                                <select name="type" class="form-select form-control-dark" required>
+                                    <option value="Weekday">Working Day Meeting (Midweek)</option>
+                                    <option value="Weekend">Weekend Meeting</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="text-secondary small mb-2">Attendance Count</label>
+                                <input type="number" name="count" class="form-control form-control-dark" placeholder="Total attendees" min="0" required>
+                            </div>
+                            <button type="submit" class="btn btn-submit w-100">
+                                <i class="fas fa-save me-2"></i> SAVE RECORD
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Attendance Report -->
+        <div class="tab-pane fade {{#if (eq activeTab 'report')}}show active{{/if}}" id="report" role="tabpanel">
+            
+            <!-- Summary Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="summary-card">
+                        <span class="summary-label">Avg Weekday</span>
+                        <span class="summary-val">{{summary.weekdayAvg}}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="summary-card">
+                        <span class="summary-label">Avg Weekend</span>
+                        <span class="summary-val text-info">{{summary.weekendAvg}}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="summary-card">
+                        <span class="summary-label">Total Meetings</span>
+                        <span class="summary-val text-accent">{{summary.totalRecords}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Table Card -->
+            <div class="card-custom">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                    <h5 class="text-white m-0">Records for {{selectedMonth}} {{selectedYear}}</h5>
+                    
+                    <form action="/attendance" method="GET" class="d-flex gap-2">
+                        <input type="hidden" name="tab" value="report">
+                        <select name="month" class="form-select bg-dark text-white border-secondary small" onchange="this.form.submit()">
+                            {{#each months}}
+                            <option value="{{this}}" {{#if (eq ../selectedMonth this)}}selected{{/if}}>{{this}}</option>
+                            {{/each}}
+                        </select>
+                        <select name="year" class="form-select bg-dark text-white border-secondary small" onchange="this.form.submit()">
+                            <option value="2025" {{#if (eq selectedYear 2025)}}selected{{/if}}>2025</option>
+                            <option value="2026" {{#if (eq selectedYear 2026)}}selected{{/if}}>2026</option>
+                            <option value="2027" {{#if (eq selectedYear 2027)}}selected{{/if}}>2027</option>
+                            <option value="2028" {{#if (eq selectedYear 2028)}}selected{{/if}}>2028</option>
+                        </select>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="attendanceTable" class="table table-dark-custom align-middle">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th class="text-center">Count</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each records}}
+                            <tr>
+                                <td class="fw-bold">{{this.displayDate}}</td>
+                                <td>
+                                    <span class="type-badge {{#if (eq this.type 'Weekday')}}badge-weekday{{else}}badge-weekend{{/if}}">
+                                        {{this.type}}
+                                    </span>
+                                </td>
+                                <td class="text-center fw-bold text-white">{{this.count}}</td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-info edit-btn" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editAttendanceModal"
+                                                data-id="{{this._id}}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="/attendance/{{this._id}}?_method=DELETE" method="POST" onsubmit="return confirm('Delete this record?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+
+                {{#unless records.length}}
+                <div class="text-center py-5">
+                    <p class="text-secondary">No records found for this period.</p>
+                </div>
+                {{/unless}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Attendance Modal -->
+<div class="modal fade" id="editAttendanceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-custom p-0" style="border: 1px solid var(--accent-color);">
+            <div class="modal-header border-bottom border-secondary p-4">
+                <h5 class="modal-title text-white" id="modalTitle">Update Attendance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="modalLoading" class="text-center py-4 d-none">
+                    <div class="spinner-border text-accent mb-2"></div>
+                    <p class="text-secondary m-0">Fetching record data...</p>
+                </div>
+                <form id="editAttendanceForm" action="/attendance/update" method="POST">
+                    <input type="hidden" name="_method" value="PUT">
+                    <input type="hidden" name="id" id="edit_id">
+                    
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-2">Meeting Date</label>
+                        <input type="date" name="date" id="edit_date" class="form-control form-control-dark" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-2">Meeting Type</label>
+                        <select name="type" id="edit_type" class="form-select form-control-dark" required>
+                            <option value="Weekday">Working Day Meeting (Midweek)</option>
+                            <option value="Weekend">Weekend Meeting</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="text-secondary small mb-2">Attendance Count</label>
+                        <input type="number" name="count" id="edit_count" class="form-control form-control-dark" min="0" required>
+                    </div>
+                    <button type="submit" class="btn btn-submit w-100">UPDATE RECORD</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#attendanceTable').DataTable({
+        "paging": true,
+        "pageLength": 10,
+        "order": [[0, "desc"]],
+        "dom": '<"d-flex justify-content-between align-items-center mb-3"f>rtip',
+        "language": { "search": "", "searchPlaceholder": "Search records..." }
+    });
+
+    // Native Bootstrap 5 event for AJAX pre-filling
+    const editModal = document.getElementById('editAttendanceModal');
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', async function(event) {
+            const button = event.relatedTarget;
+            const $btn = $(button).closest('.edit-btn');
+            const id = $btn.data('id');
+            if (!id) return;
+
+            // Reset form and show loading
+            const $form = $('#editAttendanceForm');
+            const $loading = $('#modalLoading');
+            $form.addClass('d-none');
+            $loading.removeClass('d-none');
+            $('#modalTitle').text('Loading Data...');
+
+            try {
+                const apiURL = `/attendance/record/${id}`;
+                console.log('Fetching:', apiURL); // User can check console
+                
+                // Fetch latest data from backend
+                const response = await fetch(apiURL);
+                const record = await response.json();
+
+                if (record) {
+                    // Populate modal
+                    $form.attr('action', '/attendance/' + id + '?_method=PUT');
+                    $('#edit_id').val(id);
+                    $('#edit_date').val(record.isoDate);
+                    $('#edit_type').val(record.type);
+                    $('#edit_count').val(record.count);
+                    
+                    $('#modalTitle').text('Update Attendance');
+                    $form.removeClass('d-none');
+                    $loading.addClass('d-none');
+                }
+            } catch (err) {
+                console.error("Fetch attendance failed:", err);
+                $('#modalTitle').text('Error loading data');
+                $loading.html('<div class="text-danger">Failed to load record. Please close and try again.</div>');
+            }
+        });
+    }
+});
+</script>
