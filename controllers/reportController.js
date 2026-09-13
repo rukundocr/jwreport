@@ -309,3 +309,83 @@ exports.updateIndividualBulkReports = async (req, res) => {
         res.status(500).json({ success: false, message: "Error saving reports" });
     }
 };
+
+// @desc    Get annual overview of group reports
+exports.getAnnualOverview = async (req, res) => {
+    try {
+        const selectedYear = parseInt(req.query.year) || new Date().getFullYear();
+
+        // 1. Fetch all active members and group them
+        const members = await Member.find({ status: 'Active' }).sort({ firstName: 1, lastName: 1 }).lean();
+        
+        // 2. DEFINE THE 12 MONTHS (Sept Previous Year to Aug Current Year)
+        const serviceMonths = [
+            { name: "September", short: "Sep", year: selectedYear - 1 },
+            { name: "October", short: "Oct", year: selectedYear - 1 },
+            { name: "November", short: "Nov", year: selectedYear - 1 },
+            { name: "December", short: "Dec", year: selectedYear - 1 },
+            { name: "January", short: "Jan", year: selectedYear },
+            { name: "February", short: "Feb", year: selectedYear },
+            { name: "March", short: "Mar", year: selectedYear },
+            { name: "April", short: "Apr", year: selectedYear },
+            { name: "May", short: "May", year: selectedYear },
+            { name: "June", short: "Jun", year: selectedYear },
+            { name: "July", short: "Jul", year: selectedYear },
+            { name: "August", short: "Aug", year: selectedYear }
+        ];
+
+        // Fetch all reports that fall within these 12 months
+        const reports = await Report.find({
+            $or: serviceMonths.map(m => ({ month: m.name, year: m.year.toString() }))
+        }).lean();
+        
+        // 3. Process data into grouped format
+        const groupedData = {};
+
+        members.forEach(member => {
+            const groupName = member.group || 'Unassigned';
+            if (!groupedData[groupName]) {
+                groupedData[groupName] = [];
+            }
+
+            // Find all reports for this member
+            const memberReports = reports.filter(r => r.memberId.toString() === member._id.toString());
+            
+            const monthlyStatus = serviceMonths.map(m => {
+                const report = memberReports.find(r => r.month === m.name && r.year.toString() === m.year.toString());
+                return {
+                    month: m.short,
+                    hasReported: report ? report.participated : false
+                };
+            });
+
+            groupedData[groupName].push({
+                _id: member._id,
+                firstName: member.firstName,
+                lastName: member.lastName,
+                type: member.type || 'N/A',
+                phone: member.phone || 'N/A',
+                monthlyStatus: monthlyStatus
+            });
+        });
+
+        // Convert object to array for Handlebars iterations
+        const groupsArray = Object.keys(groupedData).sort().map(groupName => {
+            return {
+                name: groupName,
+                id: groupName.replace(/\s+/g, '-').toLowerCase(),
+                members: groupedData[groupName]
+            };
+        });
+
+        res.render('annual-overview', {
+            groups: groupsArray,
+            selectedYear,
+            serviceMonths,
+            activeAnnualOverview: true
+        });
+    } catch (err) {
+        console.error("Annual Overview Error:", err);
+        res.status(500).send("Error loading annual overview");
+    }
+};

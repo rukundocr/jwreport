@@ -1,0 +1,194 @@
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1" style="color: var(--accent-color);">Annual Group Overview</h2>
+            <p class="text-secondary mb-0">Track monthly report submissions by group for {{selectedYear}}</p>
+        </div>
+        
+        <form method="GET" action="/reports/annual-overview" class="d-flex align-items-center gap-2">
+            <label for="year" class="text-secondary mb-0 text-nowrap">Service Year:</label>
+            <select name="year" id="year" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                <option value="2025" {{#if (eq selectedYear 2025)}}selected{{/if}}>2025</option>
+                <option value="2026" {{#if (eq selectedYear 2026)}}selected{{/if}}>2026</option>
+                <option value="2027" {{#if (eq selectedYear 2027)}}selected{{/if}}>2027</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="card card-custom">
+        <div class="card-body">
+            {{#if groups.length}}
+                <!-- Group Tabs -->
+                <ul class="nav nav-tabs mb-4" id="groupTabs" role="tablist">
+                    {{#each groups}}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {{#if @first}}active{{/if}}" 
+                                    id="tab-{{this.id}}-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#tab-{{this.id}}" 
+                                    type="button" 
+                                    role="tab" 
+                                    aria-controls="tab-{{this.id}}" 
+                                    aria-selected="{{#if @first}}true{{else}}false{{/if}}"
+                                    style="color: var(--text-primary);">
+                                {{this.name}}
+                            </button>
+                        </li>
+                    {{/each}}
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="groupTabsContent">
+                    {{#each groups}}
+                        <div class="tab-pane fade {{#if @first}}show active{{/if}}" 
+                             id="tab-{{this.id}}" 
+                             role="tabpanel" 
+                             aria-labelledby="tab-{{this.id}}-tab">
+                            
+                            <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-sm btn-outline-primary" onclick="downloadGroupPDF('{{this.id}}', '{{this.name}}', {{../selectedYear}})">
+                                    <i class="fas fa-file-pdf"></i> Download PDF
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover align-middle" id="table-{{this.id}}">
+                                    <thead style="background-color: rgba(255,255,255,0.05);">
+                                        <tr>
+                                            <th class="text-nowrap" style="min-width: 200px;">Member Name</th>
+                                            {{#each ../serviceMonths}}
+                                                <th class="text-center">
+                                                    {{this.short}}
+                                                    <div style="font-size: 0.7rem; font-weight: normal; opacity: 0.7;">{{this.year}}</div>
+                                                </th>
+                                            {{/each}}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{#each this.members}}
+                                            <tr>
+                                                <td class="align-middle">
+                                                    <div class="fw-bold">{{this.firstName}} {{this.lastName}}</div>
+                                                    <div class="text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase;">
+                                                        <i class="fas fa-id-badge me-1" style="font-size: 0.7rem;"></i>{{formatType this.type}}
+                                                    </div>
+                                                </td>
+                                                {{#each this.monthlyStatus}}
+                                                    <td class="text-center align-middle" style="width: 50px;">
+                                                        {{#if this.hasReported}}
+                                                            <i class="fas fa-check-circle text-success" title="Reported"></i>
+                                                        {{else}}
+                                                            <div style="background-color: rgba(220, 53, 69, 0.2); padding: 5px; border-radius: 4px; border: 1px solid #dc3545;">
+                                                                <span class="text-danger fw-bold" style="font-size: 0.8rem;">Missing</span>
+                                                            </div>
+                                                        {{/if}}
+                                                    </td>
+                                                {{/each}}
+                                            </tr>
+                                        {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+            {{else}}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x mb-3 text-secondary"></i>
+                    <h5 class="text-secondary">No groups or members found.</h5>
+                </div>
+            {{/if}}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling for the nav-tabs to match the dark theme */
+    .nav-tabs {
+        border-bottom: 1px solid var(--border-color);
+    }
+    .nav-tabs .nav-link {
+        margin-bottom: -1px;
+        background: transparent;
+        border: 1px solid transparent;
+        border-top-left-radius: .25rem;
+        border-top-right-radius: .25rem;
+    }
+    .nav-tabs .nav-link:hover, .nav-tabs .nav-link:focus {
+        border-color: var(--border-color) var(--border-color) transparent;
+        background: rgba(255,255,255,0.05);
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--accent-color) !important;
+        background-color: var(--card-bg);
+        border-color: var(--border-color) var(--border-color) var(--card-bg);
+        font-weight: bold;
+    }
+    .table-bordered > :not(caption) > * > * {
+        border-color: var(--border-color);
+    }
+</style>
+
+<script>
+    function downloadGroupPDF(groupId, groupName, year) {
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            alert("PDF library is still loading, please try again in a moment.");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        // Use landscape mode for wider tables
+        const doc = new jsPDF('landscape');
+
+        doc.setFontSize(16);
+        doc.text(`Group Report Overview: ${groupName}`, 14, 15);
+        
+        doc.setFontSize(11);
+        doc.text(`Service Year: ${year}`, 14, 22);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
+
+        doc.autoTable({
+            html: `#table-${groupId}`,
+            startY: 35,
+            theme: 'grid',
+            headStyles: { fillColor: [187, 134, 252], textColor: [0, 0, 0] },
+            styles: { fontSize: 8, cellPadding: 3, valign: 'middle' },
+            didParseCell: function(data) {
+                // Formatting the first column (Member Name + Type)
+                if (data.section === 'body' && data.column.index === 0) {
+                    const cellElement = data.cell.raw;
+                    if (cellElement) {
+                        const nameDiv = cellElement.querySelector('.fw-bold');
+                        const typeDiv = cellElement.querySelector('.text-secondary');
+                        if (nameDiv && typeDiv) {
+                            // Extract just the text, ignoring icons
+                            const nameText = nameDiv.innerText || nameDiv.textContent;
+                            const typeText = (typeDiv.innerText || typeDiv.textContent).replace(/<[^>]*>?/gm, '').trim();
+                            data.cell.text = [nameText.trim(), typeText];
+                        }
+                    }
+                }
+                
+                // Formatting the monthly status columns
+                if (data.section === 'body' && data.column.index > 0) {
+                    const cellElement = data.cell.raw;
+                    if (cellElement && cellElement.innerHTML) {
+                        const htmlContent = cellElement.innerHTML;
+                        if (htmlContent.includes('fa-check-circle')) {
+                            data.cell.text = ['✓'];
+                            data.cell.styles.textColor = [40, 167, 69]; // Green
+                            data.cell.styles.halign = 'center';
+                        } else if (htmlContent.includes('Missing')) {
+                            data.cell.text = ['Missing'];
+                            data.cell.styles.textColor = [220, 53, 69]; // Red
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                }
+            }
+        });
+
+        // Save the generated PDF
+        const filename = `Report_${groupName.replace(/\s+/g, '_')}_${year}.pdf`;
+        doc.save(filename);
+    }
+</script>

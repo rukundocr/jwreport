@@ -22,4 +22,7 @@ router.post('/individual/:memberId/bulk-update', ensureAuth, reportController.up
 // Route to update a report manually
 router.post('/update', ensureAuth, reportController.updateReport);
 
+// Route for Annual Group Overview
+router.get('/annual-overview', ensureAuth, reportController.getAnnualOverview);
+
 module.exports = router;
